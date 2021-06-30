@@ -13,6 +13,7 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   List _listaTarefas = [];
+  Map<String, dynamic> _ultimoRemovido = Map();
   TextEditingController _controllerTarefa = TextEditingController();
 
   Future<File> _getFile() async {
@@ -64,13 +65,37 @@ class _HomeState extends State<Home> {
   }
 
   Widget criarListaItem(context, index) {
-    final item = _listaTarefas[index]["titulo"];
     return Dismissible(
-      key: Key(item),
+      key: Key(
+        DateTime.now().millisecondsSinceEpoch.toString(),
+      ),
       direction: DismissDirection.endToStart,
       onDismissed: (direction) {
+        //Salva o indice para o snackbar
+        _ultimoRemovido = _listaTarefas[index];
+
+        //Remove item da lista
         _listaTarefas.removeAt(index);
         _salvarArquivo();
+
+        //snackbar
+        final snackbar = SnackBar(
+          content: Text("Tarefa Removida"),
+          duration: Duration(seconds: 5),
+          action: SnackBarAction(
+            label: "Defazer",
+            onPressed: () {
+              setState(() {
+                _listaTarefas.insert(index, _ultimoRemovido);
+              });
+
+              _salvarArquivo();
+            },
+          ),
+          //backgroundColor: Colors.green,
+        );
+
+        Scaffold.of(context).showSnackBar(snackbar);
       },
       background: Container(
         color: Colors.red,
@@ -100,8 +125,8 @@ class _HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
-    _salvarArquivo();
-    //print("itens: " + _listaTarefas.toString());
+    //_salvarArquivo();
+    //print("itens: " + DateTime.now().millisecondsSinceEpoch.toString());
 
     return Scaffold(
       appBar: AppBar(
